@@ -1,4 +1,5 @@
 <?php
+// Fungsi normalisasi
 function normalize($matrix, $num_alternatives, $num_criteria) {
     $normalized = array();
     for ($j = 0; $j < $num_criteria; $j++) {
@@ -13,6 +14,7 @@ function normalize($matrix, $num_alternatives, $num_criteria) {
     return $normalized;
 }
 
+// Fungsi pembobotan
 function weighted($normalized, $weights, $num_alternatives, $num_criteria) {
     $weighted = array();
     for ($i = 0; $i < $num_alternatives; $i++) {
@@ -23,6 +25,7 @@ function weighted($normalized, $weights, $num_alternatives, $num_criteria) {
     return $weighted;
 }
 
+// Fungsi perhitungan S+ dan S-
 function calculate_sums($weighted, $types, $num_alternatives, $num_criteria) {
     $benefit_sums = array();
     $cost_sums = array();
@@ -40,17 +43,28 @@ function calculate_sums($weighted, $types, $num_alternatives, $num_criteria) {
     return array($benefit_sums, $cost_sums);
 }
 
+// Fungsi perhitungan Qi
 function calculate_q($benefit_sums, $cost_sums, $num_alternatives) {
     $Q = array();
     $min_cost = min($cost_sums);
+    $sum_costs = array_sum($cost_sums);
     $sum_benefits = array_sum($benefit_sums);
+    $sum_min_cost_ratios = 0;
+    
+    // Menghitung jumlah min(S^-) / S_n^-
     for ($i = 0; $i < $num_alternatives; $i++) {
-        $Q[$i] = $benefit_sums[$i] + ($min_cost * $sum_benefits / $cost_sums[$i]);
+        $sum_min_cost_ratios += $min_cost / $cost_sums[$i];
     }
+
+    // Menghitung Qi
+    for ($i = 0; $i < $num_alternatives; $i++) {
+        $Q[$i] = $benefit_sums[$i] + ($min_cost * $sum_costs) / ($cost_sums[$i] * $sum_min_cost_ratios);
+    }
+
     return $Q;
 }
 
-// Get input values
+// Mendapatkan nilai input
 $kriteria = array();
 $types = array();
 $weights = array();
@@ -68,19 +82,19 @@ for ($i = 1; $i <= 5; $i++) {
     }
 }
 
-// Normalize matrix
+// Normalisasi matriks
 $normalized = normalize($alternatives, 5, 5);
 
-// Apply weights
+// Pembobotan
 $weighted = weighted($normalized, $weights, 5, 5);
 
-// Calculate S+ and S-
+// Perhitungan S+ dan S-
 list($benefit_sums, $cost_sums) = calculate_sums($weighted, $types, 5, 5);
 
-// Calculate Q
+// Perhitungan Qi
 $Q = calculate_q($benefit_sums, $cost_sums, 5);
 
-// Sort alternatives by Q
+// Mengurutkan alternatif berdasarkan Qi
 arsort($Q);
 
 ?>
